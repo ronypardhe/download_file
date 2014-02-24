@@ -1,0 +1,79 @@
+<! DOCTYPE html>
+
+<html>
+	<head>
+			<title>File Download</title>
+			<script src="js/jquery-1.10.2.min.js"></script>
+			<script type="text/javascript" src="cordava.js"></script>
+			<script type="text/javascript">
+			
+				var downloadDirectory;
+				
+				document.addEventListener("deviceready", onDeviceReady, true);
+				
+				function onDeviceReady()
+				{
+					windows.requestFileSystem(LocalFileSystem.PERSISTENT,0,onFileSystemSuccess,null);
+					$('#download_btn').on('click', function(e) {
+					download();
+					});
+				}
+				
+				function onFileSystemSuccess(fileSystem)
+				{
+					fileSystem.root.getDirectory('my_downloads',
+					{create:true},
+					function(dir)
+					{
+						downloadDirectory = dir;
+					},onError);
+				}
+				
+				function download()
+				{
+					var fileURL = document.getElementById('file_url').value;
+					var localFileName = getFilename(fileURL);
+					$('#message').html('Downloading' + localFileName);
+					var fileTransfer = new FileTransfer();
+					fileTransfer.download(
+						fileURL,
+						downloadDirectory.fullpath + '/' + localFileName,
+						function(entry)
+						{
+							$('#message').html('Download complete.File saved to : '	+ entry.fullpath);
+						},
+						function(error)
+						{
+							alert("Download error source " + JSON.stringify(error));
+						}
+					);
+				}
+				
+				function getFilename(url)
+				{
+					if(url)
+					{
+						var m = url.toString().match(/.*\/(.+?)\./);
+						if(m && m.length > 1)
+						{
+							return m[1] + '.' + url.split('.').pop();
+						}
+					}
+					return "";
+				}
+				
+				function onError(error)
+				{
+					$('#message').html('We encountered a problem: ' + error.code);
+				}
+				
+			</script>
+			
+	</head>
+	<body>
+		<input type="text" id="file_url" value=""/>
+		<input type = "button" id="download_btn" value = "Download"/>
+		<div id="message"></div>
+	
+	</body>
+</html>
